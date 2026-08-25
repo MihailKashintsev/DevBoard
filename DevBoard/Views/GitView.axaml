@@ -1,0 +1,343 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevBoard.ViewModels"
+             xmlns:m="using:DevBoard.Models"
+             x:Class="DevBoard.Views.GitView"
+             x:DataType="vm:GitViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" MaxWidth="1200">
+
+        <!-- ═══════════ Page Header ═══════════ -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="Git"
+                           FontSize="20" FontWeight="SemiBold"
+                           FontFamily="Cascadia Code, Consolas, monospace"
+                           Foreground="#D4D4DC" />
+                <Border Background="#1E2A22"
+                        CornerRadius="4"
+                        Padding="8,2"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsRepo}">
+                    <TextBlock Text="{Binding BranchName}"
+                               FontSize="10" FontWeight="Medium"
+                               FontFamily="Cascadia Code, Consolas, monospace"
+                               Foreground="#7AB888" />
+                </Border>
+            </StackPanel>
+            <TextBlock Text="{Binding StatusText}"
+                       FontSize="12"
+                       FontFamily="Cascadia Code, Consolas, monospace"
+                       Foreground="#555566" />
+        </StackPanel>
+
+        <!-- ═══════════ Repo Bar ═══════════ -->
+        <Border Grid.Row="1"
+                Background="#16161E"
+                CornerRadius="10"
+                Padding="12,8"
+                BorderBrush="#22222C"
+                BorderThickness="1"
+                Margin="0,0,0,16">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                    <Button Classes="git-btn" Content="Папка..." Command="{Binding BrowseCommand}" />
+                    <Button Classes="git-btn accent" Content="Обновить" Command="{Binding RefreshRepoCommand}" />
+                </StackPanel>
+                <TextBox Text="{Binding RepoPath}"
+                         Watermark="C:\путь\к\репозиторию"
+                         Classes="path-box" />
+            </DockPanel>
+        </Border>
+
+        <!-- ═══════════ Main Area ═══════════ -->
+        <Grid Grid.Row="2" ColumnDefinitions="430,*">
+
+            <!-- Changes card -->
+            <Border Grid.Column="0"
+                    Background="#16161E"
+                    CornerRadius="14"
+                    BorderBrush="#22222C"
+                    BorderThickness="1"
+                    Margin="0,0,16,0"
+                    ClipToBounds="True">
+                <DockPanel>
+
+                    <Border DockPanel.Dock="Top"
+                            Padding="16,10"
+                            Background="#1A1A24"
+                            BorderBrush="#22222C"
+                            BorderThickness="0,0,0,1">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+                                <Button Classes="git-btn small" Content="+ Все" IsEnabled="{Binding IsRepo}"
+                                        Command="{Binding StageAllCommand}" ToolTip.Tip="git add -A" />
+                                <Button Classes="git-btn small" Content="Индекс" IsEnabled="{Binding SelectedChange, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Command="{Binding UnstageCommand}" ToolTip.Tip="Убрать из индекса" />
+                                <Button Classes="git-btn small accent" Content="+ Добавить" IsEnabled="{Binding SelectedChange, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Command="{Binding StageCommand}" ToolTip.Tip="git add файл" />
+                            </StackPanel>
+                            <TextBlock Text="ИЗМЕНЕНИЯ"
+                                       FontSize="10" FontWeight="SemiBold"
+                                       Foreground="#4A4A6A"
+                                       LetterSpacing="1.2"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Commit area -->
+                    <Border DockPanel.Dock="Bottom"
+                            Padding="14,12"
+                            BorderBrush="#22222C"
+                            BorderThickness="0,1,0,0"
+                            Background="#141420">
+                        <StackPanel Spacing="10">
+                            <TextBox Text="{Binding CommitMessage}"
+                                     Watermark="Сообщение коммита..."
+                                     AcceptsReturn="False"
+                                     Classes="commit-box" />
+                            <Button Classes="git-btn commit"
+                                    Content="Закоммитить (add -A + commit)"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding CommitCommand}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Changes list / empty state -->
+                    <Panel>
+                        <ListBox ItemsSource="{Binding Changes}"
+                                 SelectedItem="{Binding SelectedChange, Mode=TwoWay}"
+                                 IsVisible="{Binding IsRepo}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type m:GitFileEntry}">
+                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="2,5">
+                                        <Border Width="34"
+                                                CornerRadius="5"
+                                                Padding="6,2"
+                                                Background="#1E1E38"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Badge}"
+                                                       FontSize="10" FontWeight="Bold"
+                                                       FontFamily="Consolas, monospace"
+                                                       Foreground="#8B8BF5"
+                                                       HorizontalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Path}"
+                                                   FontSize="12"
+                                                   FontFamily="Consolas, monospace"
+                                                   Foreground="#B8B8D8"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="6"
+                                    IsVisible="{Binding !IsRepo}">
+                            <TextBlock Text="Репозиторий не выбран"
+                                       FontSize="14" FontWeight="Medium"
+                                       Foreground="#4A4A6A"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="Укажите путь к папке с git-репозиторием"
+                                       FontSize="11"
+                                       Foreground="#4A4A6A"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Panel>
+                </DockPanel>
+            </Border>
+
+            <!-- History card -->
+            <Border Grid.Column="1"
+                    Background="#16161E"
+                    CornerRadius="14"
+                    BorderBrush="#22222C"
+                    BorderThickness="1"
+                    ClipToBounds="True">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top"
+                            Padding="16,10"
+                            Background="#1A1A24"
+                            BorderBrush="#22222C"
+                            BorderThickness="0,0,0,1">
+                        <TextBlock Text="ИСТОРИЯ КОММИТОВ"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="#4A4A6A"
+                                   LetterSpacing="1.2" />
+                    </Border>
+
+                    <!-- Diff panel -->
+                    <Border DockPanel.Dock="Bottom"
+                            Height="240"
+                            BorderBrush="#22222C"
+                            BorderThickness="0,1,0,0"
+                            Background="#111118"
+                            IsVisible="{Binding HasDiff}">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top"
+                                    Padding="16,8"
+                                    Background="#141428">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Left"
+                                               Text="DIFF"
+                                               FontSize="10" FontWeight="SemiBold"
+                                               Foreground="#E06C75"
+                                               LetterSpacing="1.2"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding DiffTitle}"
+                                               FontSize="11"
+                                               FontFamily="Consolas, monospace"
+                                               Foreground="#6A6A8A"
+                                               Margin="12,0,0,0"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" />
+                                </DockPanel>
+                            </Border>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Auto">
+                                <SelectableTextBlock Text="{Binding DiffText}"
+                                                     FontFamily="Cascadia Code, Consolas, monospace"
+                                                     FontSize="11"
+                                                     LineHeight="17"
+                                                     Foreground="#9AA0B5"
+                                                     Margin="16,10" />
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+
+                    <ListBox ItemsSource="{Binding Commits}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type m:GitCommitInfo}">
+                                <StackPanel Spacing="3" Margin="2,7">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="{Binding Hash}"
+                                                   FontSize="11" FontWeight="Bold"
+                                                   FontFamily="Consolas, monospace"
+                                                   Foreground="#E06C75" />
+                                        <TextBlock Text="{Binding Subject}"
+                                                   FontSize="12" FontWeight="Medium"
+                                                   Foreground="#D8D8EC"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <TextBlock FontSize="10" Foreground="#4A4A6A">
+                                        <Run Text="{Binding Author}" />
+                                        <Run Text="·" />
+                                        <Run Text="{Binding Date}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+    <UserControl.Styles>
+        <!-- Path box -->
+        <Style Selector="TextBox.path-box">
+            <Setter Property="Background" Value="#111118" />
+            <Setter Property="Foreground" Value="#C8C8D4" />
+            <Setter Property="BorderBrush" Value="#22222C" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+        </Style>
+
+        <!-- Commit message box -->
+        <Style Selector="TextBox.commit-box">
+            <Setter Property="Background" Value="#111118" />
+            <Setter Property="Foreground" Value="#C8C8D4" />
+            <Setter Property="BorderBrush" Value="#22222C" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+            <Setter Property="MinHeight" Value="50" />
+            <Setter Property="MaxHeight" Value="110" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="AcceptsReturn" Value="True" />
+        </Style>
+
+        <!-- Git buttons -->
+        <Style Selector="Button.git-btn">
+            <Setter Property="Background" Value="#22222C" />
+            <Setter Property="Foreground" Value="#888898" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.git-btn.small">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="Height" Value="24" />
+        </Style>
+        <Style Selector="Button.git-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2A2A38" />
+            <Setter Property="Foreground" Value="#C8C8D4" />
+        </Style>
+        <Style Selector="Button.git-btn:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#333344" />
+        </Style>
+        <Style Selector="Button.git-btn.accent /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2A2228" />
+            <Setter Property="Foreground" Value="#D4A574" />
+        </Style>
+        <Style Selector="Button.git-btn.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#332A30" />
+        </Style>
+        <Style Selector="Button.git-btn.commit /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1E2A22" />
+            <Setter Property="Foreground" Value="#7AB888" />
+        </Style>
+        <Style Selector="Button.git-btn.commit:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#263430" />
+        </Style>
+
+        <!-- Lists -->
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="6" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Margin" Value="0,0,0,1" />
+        </Style>
+        <Style Selector="ListBoxItem /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1A1A24" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1E1E28" />
+        </Style>
+    </UserControl.Styles>
+
+</UserControl>

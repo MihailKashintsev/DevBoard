@@ -1,0 +1,229 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevBoard.ViewModels"
+             x:Class="DevBoard.Views.TerminalView"
+             x:DataType="vm:TerminalViewModel">
+
+    <Grid RowDefinitions="Auto,*" MaxWidth="1200">
+
+        <!-- ═══════════ Page Header ═══════════ -->
+        <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Border Width="40" Height="40"
+                        CornerRadius="10"
+                        Background="#2E2A1A"
+                        BorderBrush="#4A4530"
+                        BorderThickness="1">
+                    <TextBlock Text="&gt;_"
+                               FontSize="14" FontWeight="Bold"
+                               Foreground="#E5C07B"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="Терминал"
+                               FontSize="26" FontWeight="Bold"
+                               Foreground="#E8E8F0" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Border Width="8" Height="8"
+                                CornerRadius="4"
+                                Background="#6BCB77"
+                                VerticalAlignment="Center"
+                                IsVisible="{Binding !IsBusy}" />
+                        <Border Width="8" Height="8"
+                                CornerRadius="4"
+                                Background="#E5C07B"
+                                VerticalAlignment="Center"
+                                IsVisible="{Binding IsBusy}" />
+                        <TextBlock Text="Команды выполняются через cmd.exe · Enter - выполнить · стрелки - история"
+                                   FontSize="13"
+                                   Foreground="#7A7AA0"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ═══════════ Terminal Window ═══════════ -->
+        <Border Grid.Row="1"
+                Background="#0D0D18"
+                CornerRadius="14"
+                BorderBrush="#252540"
+                BorderThickness="1"
+                ClipToBounds="True">
+            <DockPanel>
+
+                <!-- Title bar -->
+                <Border DockPanel.Dock="Top"
+                        Padding="16,10"
+                        Background="#141428"
+                        BorderBrush="#252540"
+                        BorderThickness="0,0,0,1"
+                        CornerRadius="14,14,0,0">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Left"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    VerticalAlignment="Center">
+                            <Border Width="12" Height="12" CornerRadius="6" Background="#E06C75" />
+                            <Border Width="12" Height="12" CornerRadius="6" Background="#E5C07B" />
+                            <Border Width="12" Height="12" CornerRadius="6" Background="#6BCB77" />
+                        </StackPanel>
+                        <Border DockPanel.Dock="Left"
+                                Background="#1A1A32"
+                                CornerRadius="7"
+                                Padding="14,4"
+                                Margin="16,0,0,0">
+                            <TextBlock Text="cmd"
+                                       FontSize="11" FontWeight="Medium"
+                                       Foreground="#E5C07B" />
+                        </Border>
+                    </DockPanel>
+                </Border>
+
+                <!-- Input row -->
+                <Border DockPanel.Dock="Bottom"
+                        Padding="16,10"
+                        Background="#10101F"
+                        BorderBrush="#252540"
+                        BorderThickness="0,1,0,0">
+                    <StackPanel Spacing="8">
+
+                        <!-- Quick commands -->
+                        <ItemsControl ItemsSource="{Binding QuickCommands}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="6" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Classes="term-chip"
+                                            Content="{Binding}"
+                                            Command="{Binding $parent[ItemsControl].((vm:TerminalViewModel)DataContext).RunQuickCommand}"
+                                            CommandParameter="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right"
+                                    Classes="term-btn accent"
+                                    MinWidth="110"
+                                    Margin="12,0,0,0"
+                                    Content="Выполнить"
+                                    Command="{Binding ExecuteCommand}"
+                                    IsEnabled="{Binding !IsBusy}" />
+                            <TextBlock DockPanel.Dock="Left"
+                                       Text="&gt;"
+                                       FontSize="14" FontWeight="Bold"
+                                       FontFamily="Consolas, monospace"
+                                       Foreground="#6BCB77"
+                                       Margin="0,2,10,0" />
+                            <TextBox x:Name="InputBox"
+                                     Text="{Binding InputLine}"
+                                     Watermark="Введите команду..."
+                                     Classes="term-input"
+                                     KeyDown="OnInputKeyDown" />
+                        </DockPanel>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- Output -->
+                <ScrollViewer x:Name="OutputScroll"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <SelectableTextBlock Text="{Binding Output}"
+                                         FontFamily="Cascadia Code, Consolas, Menlo, monospace"
+                                         FontSize="13"
+                                         LineHeight="21"
+                                         Foreground="#B8C0D0"
+                                         TextWrapping="Wrap"
+                                         Margin="16,14,8,14" />
+                </ScrollViewer>
+
+            </DockPanel>
+        </Border>
+
+    </Grid>
+
+    <UserControl.Styles>
+        <!-- Input -->
+        <Style Selector="TextBox.term-input">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#E8E8F0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0,2" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Consolas, monospace" />
+            <Setter Property="CaretBrush" Value="#E5C07B" />
+        </Style>
+        <Style Selector="TextBox.term-input /template/ Border#PART_BorderElement">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="MinHeight" Value="0" />
+        </Style>
+
+        <!-- Quick command chips -->
+        <Style Selector="Button.term-chip">
+            <Setter Property="Background" Value="#1A1A24" />
+            <Setter Property="Foreground" Value="#666678" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.term-chip:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2E2A1A" />
+            <Setter Property="Foreground" Value="#E5C07B" />
+        </Style>
+        <Style Selector="Button.term-chip:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#403A22" />
+        </Style>
+
+        <!-- Buttons -->
+        <Style Selector="Button.term-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#555566" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.term-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#22223E" />
+            <Setter Property="Foreground" Value="#C8C8E0" />
+        </Style>
+        <Style Selector="Button.term-btn.accent /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2E2A1A" />
+            <Setter Property="Foreground" Value="#E5C07B" />
+        </Style>
+        <Style Selector="Button.term-btn.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#403A22" />
+        </Style>
+    </UserControl.Styles>
+
+</UserControl>

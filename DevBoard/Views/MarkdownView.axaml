@@ -1,0 +1,225 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevBoard.ViewModels"
+             x:Class="DevBoard.Views.MarkdownView"
+             x:DataType="vm:MarkdownViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" MaxWidth="1100">
+
+        <!-- ═══════════ Page Header ═══════════ -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding FileName}"
+                           FontSize="20" FontWeight="SemiBold"
+                           FontFamily="Cascadia Code, Consolas, monospace"
+                           Foreground="#D4D4DC" />
+                <Border Width="6" Height="6"
+                        CornerRadius="3"
+                        Background="#D4A574"
+                        VerticalAlignment="Center"
+                        Margin="0,2,0,0"
+                        IsVisible="{Binding IsModified}"
+                        ToolTip.Tip="Unsaved changes" />
+            </StackPanel>
+            <TextBlock FontSize="12"
+                       Foreground="#555566">
+                <Run Text="{Binding LineCount}" />
+                <Run Text=" lines" />
+                <Run Text="  ·  " />
+                <Run Text="{Binding WordCount}" />
+                <Run Text=" words" />
+                <Run Text="  ·  " />
+                <Run Text="{Binding CharCount}" />
+                <Run Text=" chars" />
+            </TextBlock>
+        </StackPanel>
+
+        <!-- ═══════════ Editor / Preview Card ═══════════ -->
+        <Border Grid.Row="2"
+                Background="#16161E"
+                CornerRadius="8"
+                BorderBrush="#22222C"
+                BorderThickness="1"
+                ClipToBounds="True">
+            <DockPanel>
+
+                <!-- Toolbar -->
+                <Border DockPanel.Dock="Top"
+                        Padding="8,6"
+                        Background="#1A1A24"
+                        BorderBrush="#22222C"
+                        BorderThickness="0,0,0,1">
+                    <DockPanel>
+
+                        <!-- File operations -->
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="4">
+                            <Button Classes="tool-btn"
+                                    Content="New"
+                                    Command="{Binding NewDocumentCommand}" />
+                            <Button Classes="tool-btn"
+                                    Content="Open"
+                                    Command="{Binding OpenFileCommand}" />
+                            <Button Classes="tool-btn"
+                                    Content="Save"
+                                    Command="{Binding SaveFileCommand}" />
+                            <Button Classes="tool-btn"
+                                    Content="Save as"
+                                    Command="{Binding SaveFileAsCommand}" />
+
+                            <Border Width="1" Height="18" Background="#2A2A38" Margin="6,0" />
+
+                            <Button Classes="tool-btn fmt" Content="B" Click="OnBoldClick"
+                                    ToolTip.Tip="Bold" />
+                            <Button Classes="tool-btn fmt italic" Content="I" Click="OnItalicClick"
+                                    ToolTip.Tip="Italic" />
+                            <Button Classes="tool-btn fmt" Content="H" Click="OnHeadingClick"
+                                    ToolTip.Tip="Heading" />
+                            <Button Classes="tool-btn fmt" Content="-" Click="OnBulletClick"
+                                    ToolTip.Tip="Bullet list" />
+                            <Button Classes="tool-btn fmt" Content="1." Click="OnNumberedClick"
+                                    ToolTip.Tip="Numbered list" />
+                        </StackPanel>
+
+                        <!-- View mode switch -->
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2">
+                            <Button Classes="seg-btn"
+                                    Content="Code"
+                                    Classes.active="{Binding IsEditMode}"
+                                    Command="{Binding SetViewModeCommand}"
+                                    CommandParameter="edit" />
+                            <Button Classes="seg-btn"
+                                    Content="Split"
+                                    Classes.active="{Binding IsSplitMode}"
+                                    Command="{Binding SetViewModeCommand}"
+                                    CommandParameter="split" />
+                            <Button Classes="seg-btn"
+                                    Content="Preview"
+                                    Classes.active="{Binding IsPreviewMode}"
+                                    Command="{Binding SetViewModeCommand}"
+                                    CommandParameter="preview" />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
+                <!-- Body: editor | divider | preview -->
+                <Grid MinHeight="380" Margin="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding EditorWidth}" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="{Binding PreviewWidth}" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Editor pane -->
+                    <Border Grid.Column="0"
+                            Background="#111118"
+                            ClipToBounds="True">
+                        <TextBox x:Name="Editor"
+                                 Text="{Binding Content}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 KeyDown="OnEditorKeyDown"
+                                 FontFamily="Cascadia Code, Consolas, Menlo, monospace"
+                                 FontSize="14"
+                                 LineHeight="24"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Foreground="#C8C8D4"
+                                 CaretBrush="#D4A574"
+                                 SelectionBrush="#33D4A574"
+                                 Padding="20,16"
+                                 VerticalContentAlignment="Top"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    </Border>
+
+                    <!-- Divider -->
+                    <Border Grid.Column="1"
+                            Width="1"
+                            Margin="0"
+                            Background="#22222C"
+                            IsVisible="{Binding IsSplitMode}" />
+
+                    <!-- Preview pane -->
+                    <Border Grid.Column="2"
+                            Background="#111118"
+                            Padding="24,18"
+                            ClipToBounds="True"
+                            IsVisible="{Binding !IsEditMode}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ContentControl x:Name="PreviewHost" />
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+
+            </DockPanel>
+        </Border>
+
+    </Grid>
+
+    <UserControl.Styles>
+        <!-- Toolbar button -->
+        <Style Selector="Button.tool-btn">
+            <Setter Property="Background" Value="#22222C" />
+            <Setter Property="Foreground" Value="#888898" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.tool-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2A2A38" />
+            <Setter Property="Foreground" Value="#C8C8D4" />
+        </Style>
+        <Style Selector="Button.tool-btn:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#333344" />
+        </Style>
+
+        <Style Selector="Button.tool-btn.fmt">
+            <Setter Property="MinWidth" Value="26" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="Button.tool-btn.fmt.italic">
+            <Setter Property="FontStyle" Value="Italic" />
+        </Style>
+
+        <!-- Segmented view mode button -->
+        <Style Selector="Button.seg-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#555566" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.seg-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1E1E28" />
+            <Setter Property="Foreground" Value="#888898" />
+        </Style>
+        <Style Selector="Button.seg-btn.active /template/ ContentPresenter">
+            <Setter Property="Background" Value="#22222C" />
+            <Setter Property="Foreground" Value="#C8C8D4" />
+        </Style>
+    </UserControl.Styles>
+
+</UserControl>

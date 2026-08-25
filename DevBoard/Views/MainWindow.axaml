@@ -1,0 +1,250 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DevBoard.ViewModels"
+        xmlns:views="using:DevBoard.Views"
+        x:Class="DevBoard.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="DevBoard"
+        Width="1280" Height="800"
+        MinWidth="960" MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="#111118"
+        ExtendClientAreaToDecorationsHint="False">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Grid ColumnDefinitions="240,*">
+
+        <!-- ═══════════════ SIDEBAR ═══════════════ -->
+        <Border Grid.Column="0"
+                Background="#16161E"
+                BorderBrush="#22222C"
+                BorderThickness="0,0,1,0">
+
+            <DockPanel LastChildFill="False">
+                <!-- Logo -->
+                <Border DockPanel.Dock="Top"
+                        Height="64"
+                        Padding="20,0">
+                    <Panel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="DevBoard"
+                                       FontSize="15" FontWeight="SemiBold"
+                                       FontFamily="Cascadia Code, Consolas, monospace"
+                                       Foreground="#D4D4DC" />
+                        </StackPanel>
+                    </Panel>
+                </Border>
+
+                <!-- Divider -->
+                <Border DockPanel.Dock="Top"
+                        Height="1"
+                        Background="#22222C"
+                        Margin="16,0" />
+
+                <!-- Navigation -->
+                <TextBlock DockPanel.Dock="Top"
+                           Text="Sections"
+                           FontSize="10" FontWeight="SemiBold"
+                           Foreground="#555566"
+                           LetterSpacing="0.8"
+                           Margin="20,20,20,8" />
+
+                <!-- Menu Items -->
+                <StackPanel DockPanel.Dock="Top"
+                            Spacing="2"
+                            Margin="12,0">
+
+                    <!-- Markdown -->
+                    <Button Classes="nav-btn"
+                            Classes.active="{Binding IsMarkdownActive}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="markdown">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="M"
+                                       FontSize="12" FontWeight="Bold"
+                                       FontFamily="Cascadia Code, Consolas, monospace"
+                                       Width="20"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Text="Markdown"
+                                           FontSize="13" FontWeight="Medium"
+                                           Foreground="#C8C8D4" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Notes -->
+                    <Button Classes="nav-btn"
+                            Classes.active="{Binding IsNotesActive}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="notes">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="N"
+                                       FontSize="12" FontWeight="Bold"
+                                       FontFamily="Cascadia Code, Consolas, monospace"
+                                       Width="20"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Text="Notes"
+                                           FontSize="13" FontWeight="Medium"
+                                           Foreground="#C8C8D4" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Git -->
+                    <Button Classes="nav-btn"
+                            Classes.active="{Binding IsGitActive}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="git">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="G"
+                                       FontSize="12" FontWeight="Bold"
+                                       FontFamily="Cascadia Code, Consolas, monospace"
+                                       Width="20"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Text="Git"
+                                           FontSize="13" FontWeight="Medium"
+                                           Foreground="#C8C8D4" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Terminal -->
+                    <Button Classes="nav-btn"
+                            Classes.active="{Binding IsTerminalActive}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="terminal">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text=">"
+                                       FontSize="12" FontWeight="Bold"
+                                       FontFamily="Cascadia Code, Consolas, monospace"
+                                       Width="20"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Text="Terminal"
+                                           FontSize="13" FontWeight="Medium"
+                                           Foreground="#C8C8D4" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Spacer -->
+                <Panel />
+
+                <!-- Version -->
+                <Border DockPanel.Dock="Bottom"
+                        Margin="20,0,20,16"
+                        Padding="0,0,0,0">
+                    <TextBlock Text="v1.0"
+                               FontSize="10"
+                               FontFamily="Cascadia Code, Consolas, monospace"
+                               Foreground="#3A3A48" />
+                </Border>
+            </DockPanel>
+        </Border>
+
+        <!-- ═══════════════ CONTENT ═══════════════ -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0"
+                    Background="#16161E"
+                    BorderBrush="#22222C"
+                    BorderThickness="0,0,0,1"
+                    Padding="28,0">
+                <DockPanel>
+                    <TextBlock Text="{Binding SectionTitle}"
+                               FontSize="13" FontWeight="Medium"
+                               FontFamily="Cascadia Code, Consolas, monospace"
+                               Foreground="#888898"
+                               VerticalAlignment="Center" />
+                </DockPanel>
+            </Border>
+
+            <!-- Page Content -->
+            <Border Grid.Row="1"
+                    Background="#111118"
+                    Padding="28,20">
+                <ContentControl Content="{Binding CurrentView}">
+                    <ContentControl.DataTemplates>
+                        <DataTemplate DataType="{x:Type vm:MarkdownViewModel}">
+                            <views:MarkdownView />
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:NotesViewModel}">
+                            <views:NotesView />
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:GitViewModel}">
+                            <views:GitView />
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:TerminalViewModel}">
+                            <views:TerminalView />
+                        </DataTemplate>
+                    </ContentControl.DataTemplates>
+                </ContentControl>
+            </Border>
+        </Grid>
+
+    </Grid>
+
+    <!-- ═══════════════ STYLES ═══════════════ -->
+    <Window.Styles>
+        <!-- Navigation Button -->
+        <Style Selector="Button.nav-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="PART_Border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- Nav Button Active -->
+        <Style Selector="Button.nav-btn.active">
+            <Setter Property="Background" Value="#1E1E28" />
+        </Style>
+
+        <!-- Nav Button Hover -->
+        <Style Selector="Button.nav-btn:pointerover">
+            <Setter Property="Background" Value="#1C1C26" />
+        </Style>
+
+        <!-- Nav Button Pressed -->
+        <Style Selector="Button.nav-btn:pressed">
+            <Setter Property="Background" Value="#22222E" />
+        </Style>
+    </Window.Styles>
+
+</Window>

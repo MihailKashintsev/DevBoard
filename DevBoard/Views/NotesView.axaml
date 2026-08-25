@@ -1,0 +1,254 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevBoard.ViewModels"
+              xmlns:m="using:DevBoard.Models"
+             x:Class="DevBoard.Views.NotesView"
+             x:DataType="vm:NotesViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" MaxWidth="1100">
+
+        <!-- ═══════════ Page Header ═══════════ -->
+        <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Border Width="40" Height="40"
+                        CornerRadius="10"
+                        Background="#1A2E1E"
+                        BorderBrush="#2A4A30"
+                        BorderThickness="1">
+                    <TextBlock Text="N"
+                               FontSize="18" FontWeight="Bold"
+                               Foreground="#6BCB77"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="Заметки"
+                               FontSize="26" FontWeight="Bold"
+                               Foreground="#E8E8F0" />
+                    <TextBlock Text="{Binding StatusText}"
+                               FontSize="13"
+                               Foreground="#7A7AA0" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ═══════════ Toolbar ═══════════ -->
+        <Border Grid.Row="1"
+                Background="#16162A"
+                CornerRadius="10"
+                Padding="12,8"
+                BorderBrush="#252540"
+                BorderThickness="1"
+                Margin="0,0,0,16">
+            <DockPanel>
+                <Button DockPanel.Dock="Right"
+                        Classes="note-btn accent"
+                        Content="+ Новая заметка"
+                        Command="{Binding NewNoteCommand}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBox Width="320"
+                             Text="{Binding SearchText}"
+                             Watermark="Поиск заметок..."
+                             Classes="search-box" />
+                    <TextBlock FontSize="11"
+                               Foreground="#4A4A6A"
+                               VerticalAlignment="Center">
+                        <Run Text="{Binding TotalCount}" />
+                        <Run Text="шт." />
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ═══════════ Main Card ═══════════ -->
+        <Border Grid.Row="2"
+                Background="#16162A"
+                CornerRadius="14"
+                BorderBrush="#252540"
+                BorderThickness="1"
+                ClipToBounds="True">
+            <Grid ColumnDefinitions="300,*">
+
+                <!-- Notes list -->
+                <Border Grid.Column="0"
+                        BorderBrush="#252540"
+                        BorderThickness="0,0,1,0">
+                    <ListBox x:Name="NotesList"
+                             ItemsSource="{Binding Notes}"
+                             SelectedItem="{Binding SelectedNote, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type m:NoteItem}">
+                                <StackPanel Spacing="4" Margin="4,6">
+                                    <TextBlock Text="{Binding FileName}"
+                                               FontSize="13" FontWeight="Medium"
+                                               Foreground="#C8C8E0"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Preview}"
+                                               FontSize="11"
+                                               Foreground="#7A7AA0"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding ModifiedText}"
+                                               FontSize="10"
+                                               Foreground="#4A4A6A" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+
+                <!-- Editor pane -->
+                <DockPanel Grid.Column="1" IsVisible="{Binding HasSelection}">
+
+                    <!-- Editor toolbar -->
+                    <Border DockPanel.Dock="Top"
+                            Padding="16,8"
+                            Background="#14142A"
+                            BorderBrush="#252540"
+                            BorderThickness="0,0,0,1">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                                <Border Width="8" Height="8"
+                                        CornerRadius="4"
+                                        Background="#E5C07B"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding IsDirty}"
+                                        ToolTip.Tip="Есть несохранённые изменения" />
+                                <Button Classes="note-btn danger"
+                                        Content="Удалить"
+                                        IsEnabled="{Binding HasSelection}"
+                                        Command="{Binding DeleteNoteCommand}" />
+                                <Button Classes="note-btn accent"
+                                        Content="Сохранить"
+                                        IsEnabled="{Binding HasSelection}"
+                                        Command="{Binding SaveNoteCommand}" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding SelectedNote.FileName}"
+                                       FontSize="13" FontWeight="Medium"
+                                       Foreground="#8A8AAA"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+                    </Border>
+
+                    <TextBox Text="{Binding NoteContent}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             KeyDown="OnNoteEditorKeyDown"
+                             FontSize="14"
+                             LineHeight="24"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Foreground="#B8B8D8"
+                             CaretBrush="#6BCB77"
+                             SelectionBrush="#66304A30"
+                             Padding="20,16"
+                             VerticalContentAlignment="Top"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                </DockPanel>
+
+                <!-- Empty state -->
+                <StackPanel Grid.Column="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="8"
+                            IsVisible="{Binding !HasSelection}">
+                    <TextBlock Text="Заметка не выбрана"
+                               FontSize="15" FontWeight="Medium"
+                               Foreground="#4A4A6A"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Выберите заметку слева или создайте новую"
+                               FontSize="12"
+                               Foreground="#4A4A6A"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+    </Grid>
+
+    <UserControl.Styles>
+        <!-- Search box -->
+        <Style Selector="TextBox.search-box">
+            <Setter Property="Background" Value="#10101F" />
+            <Setter Property="Foreground" Value="#C8C8E0" />
+            <Setter Property="BorderBrush" Value="#252540" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <!-- Action button -->
+        <Style Selector="Button.note-btn">
+            <Setter Property="Background" Value="#22222C" />
+            <Setter Property="Foreground" Value="#888898" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.note-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2E2E50" />
+            <Setter Property="Foreground" Value="#E8E8F0" />
+        </Style>
+        <Style Selector="Button.note-btn:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#383863" />
+        </Style>
+        <Style Selector="Button.note-btn.accent /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1A2E1E" />
+            <Setter Property="Foreground" Value="#6BCB77" />
+        </Style>
+        <Style Selector="Button.note-btn.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#24402B" />
+        </Style>
+        <Style Selector="Button.note-btn.danger /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2E1A1D" />
+            <Setter Property="Foreground" Value="#E06C75" />
+        </Style>
+        <Style Selector="Button.note-btn.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#402428" />
+        </Style>
+
+        <!-- Notes list -->
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+        <Style Selector="ListBoxItem /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1C1C34" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#22223E" />
+        </Style>
+
+        <!-- Editor TextBox -->
+        <Style Selector="TextBox">
+            <Setter Property="SelectionBrush" Value="#66304A30" />
+        </Style>
+    </UserControl.Styles>
+
+</UserControl>

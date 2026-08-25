@@ -1,0 +1,162 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevBoard.ViewModels"
+             x:Class="DevBoard.Views.AiView"
+             x:DataType="vm:AiViewModel">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- Chat Messages -->
+        <Border Grid.Row="0"
+                Background="#0D0D18"
+                CornerRadius="14"
+                BorderBrush="#252540"
+                BorderThickness="1"
+                Margin="0,0,0,16">
+            <DockPanel>
+                <!-- Title Bar -->
+                <Border DockPanel.Dock="Top"
+                        Padding="16,10"
+                        Background="#141428"
+                        BorderBrush="#252540"
+                        BorderThickness="0,0,0,1"
+                        CornerRadius="14,14,0,0">
+                    <DockPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Width="24" Height="24" CornerRadius="6" Background="#2A1A3E">
+                                <TextBlock Text="AI" FontSize="9" FontWeight="Bold"
+                                           Foreground="#BB86FC"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="AI-ассистент"
+                                       FontSize="12" FontWeight="Medium"
+                                       Foreground="#C8C8E0"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <StackPanel DockPanel.Dock="Right"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Spacing="8">
+                            <!-- Model Selector -->
+                            <ComboBox ItemsSource="{Binding AvailableModels}"
+                                      SelectedItem="{Binding SelectedModel}"
+                                      FontSize="11"
+                                      MinWidth="180"
+                                      Background="#1E1E38"
+                                      Foreground="#C8C8E0"
+                                      CornerRadius="6"
+                                      BorderBrush="#3D3D6B"
+                                      BorderThickness="1" />
+
+                            <!-- Status -->
+                            <Border Background="#1E1E38" CornerRadius="4" Padding="8,3">
+                                <TextBlock Text="{Binding StatusText}"
+                                           FontSize="10" Foreground="#6A6A8A" />
+                            </Border>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
+                <!-- Messages -->
+                <ScrollViewer x:Name="MessagesScroller"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="16,12">
+                    <ItemsControl ItemsSource="{Binding Messages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:ChatMessage}">
+                                <Panel Margin="0,0,0,12">
+                                    <!-- System Message -->
+                                    <Border IsVisible="{Binding IsSystem}"
+                                            Background="#1A1A30"
+                                            CornerRadius="8"
+                                            Padding="14,10"
+                                            Margin="40,0,0,0"
+                                            BorderBrush="#252540"
+                                            BorderThickness="1">
+                                        <TextBlock Text="{Binding Content}"
+                                                   FontSize="13"
+                                                   Foreground="#6A6A8A"
+                                                   TextWrapping="Wrap"
+                                                   FontFamily="Cascadia Code, Consolas, monospace" />
+                                    </Border>
+
+                                    <!-- User Message -->
+                                    <Border IsVisible="{Binding IsUser}"
+                                            Background="#2A2A5A"
+                                            CornerRadius="12,12,4,12"
+                                            Padding="14,10"
+                                            Margin="80,0,0,0"
+                                            HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding Content}"
+                                                   FontSize="13"
+                                                   Foreground="#E0E0F0"
+                                                   TextWrapping="Wrap" />
+                                    </Border>
+
+                                    <!-- Assistant Message -->
+                                    <Border IsVisible="{Binding IsAssistant}"
+                                            Background="#1A1E2E"
+                                            CornerRadius="12,12,12,4"
+                                            Padding="14,10"
+                                            Margin="0,0,80,0"
+                                            BorderBrush="#252540"
+                                            BorderThickness="1">
+                                        <TextBlock Text="{Binding Content}"
+                                                   FontSize="13"
+                                                   Foreground="#C0C0E0"
+                                                   TextWrapping="Wrap"
+                                                   FontFamily="Cascadia Code, Consolas, monospace"
+                                                   LineHeight="20" />
+                                    </Border>
+                                </Panel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- Input Area -->
+        <Border Grid.Row="1"
+                Background="#141422"
+                CornerRadius="12"
+                Padding="12"
+                BorderBrush="#252540"
+                BorderThickness="1">
+            <DockPanel>
+                <Button DockPanel.Dock="Right"
+                        Command="{Binding SendMessageCommand}"
+                        IsEnabled="{Binding !IsGenerating}"
+                        Width="44" Height="44"
+                        CornerRadius="10"
+                        Background="#BB86FC"
+                        Margin="10,0,0,0"
+                        Cursor="Hand">
+                    <TextBlock Text="&#x27A4;"
+                               FontSize="18"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Button>
+
+                <Border Background="#0D0D18"
+                        CornerRadius="10"
+                        Padding="14,8">
+                    <TextBox Text="{Binding UserInput}"
+                             Background="Transparent"
+                             Foreground="#E0E0F0"
+                             FontSize="14"
+                             FontFamily="Cascadia Code, Consolas, monospace"
+                             Watermark="Напишите сообщение..."
+                             BorderThickness="0"
+                             AcceptsReturn="False"
+                             KeyDown="OnTextBoxKeyDown" />
+                </Border>
+            </DockPanel>
+        </Border>
+
+    </Grid>
+
+</UserControl>
