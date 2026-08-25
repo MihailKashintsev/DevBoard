@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Publish
+        run: dotnet publish DevBoard/DevBoard.csproj --configuration Release --output ./publish /p:Version=${{ steps.version.outputs.VERSION }}
+
+      - name: Setup Inno Setup
+        uses: le0md/read-inno-setup@v1
+        id: inno
+
+      - name: Build installer
+        run: |
+          & "${{ steps.inno.outputs.install_path }}\ISCC.exe" "installer\setup.iss" /DAppVersion=${{ steps.version.outputs.VERSION }} /DSourceDir="${{ github.workspace }}\publish" /DOutputDir="${{ github.workspace }}\installer-output"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: DevBoard ${{ github.ref_name }}
+          body: |
+            DevBoard ${{ github.ref_name }}
+            
+            ## Установка
+            Скачайте `DevBoard-Setup.exe` и запустите.
+          files: installer-output/DevBoard-Setup.exe
+          draft: false
+          prerelease: false

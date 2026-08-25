@@ -1,6 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DevBoard.Services;
 
 namespace DevBoard.ViewModels;
 
@@ -18,9 +20,30 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _sectionSubtitle = "Просмотр и редактирование Markdown файлов";
 
+    [ObservableProperty]
+    private bool _hasUpdate;
+
+    [ObservableProperty]
+    private string _updateVersion = "";
+
+    [ObservableProperty]
+    private string _updateNotes = "";
+
+    [ObservableProperty]
+    private bool _isCheckingUpdate;
+
+    [ObservableProperty]
+    private bool _isUpdating;
+
+    [ObservableProperty]
+    private string _updateStatus = "";
+
+    public string CurrentVersion => UpdateService.GetCurrentVersion().ToString();
+
     public MainViewModel()
     {
         Navigate(GetInitialSection());
+        _ = CheckForUpdateAsync();
     }
 
     private static string GetInitialSection()
@@ -62,5 +85,61 @@ public partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(IsNotesActive));
         OnPropertyChanged(nameof(IsGitActive));
         OnPropertyChanged(nameof(IsTerminalActive));
+    }
+
+    private async Task CheckForUpdateAsync()
+    {
+        IsCheckingUpdate = true;
+        try
+        {
+            var update = await UpdateService.CheckForUpdateAsync();
+            if (update != null)
+            {
+                HasUpdate = true;
+                UpdateVersion = update.TagName;
+                UpdateNotes = update.ReleaseNotes;
+            }
+        }
+        finally
+        {
+            IsCheckingUpdate = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DismissUpdateAsync()
+    {
+        HasUpdate = false;
+        await Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private async Task InstallUpdateAsync()
+    {
+        if (IsUpdating) return;
+
+        IsUpdating = true;
+        UpdateStatus = "Скачивание...";
+
+        try
+        {
+            var update = await UpdateService.CheckForUpdateAsync();
+            if (update == null)
+            {
+                UpdateStatus = "Обновление не найдено";
+                IsUpdating = false;
+                return;
+            }
+
+            await UpdateService.DownloadAndInstallAsync(update, status =>
+            {
+                UpdateStatus = status;
+            });
+        }
+        catch
+        {
+            UpdateStatus = "Ошибка обновления";
+            IsUpdating = false;
+        }
     }
 }
